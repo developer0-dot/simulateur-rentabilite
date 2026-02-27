@@ -8,7 +8,6 @@ export default function Calculator() {
   const [billableDays, setBillableDays] = useState('');
   const [currentRate, setCurrentRate] = useState('');
   
-  // 🚨 THE FIX: We added <any> so Vercel stops panicking
   const [results, setResults] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [emailSubmitted, setEmailSubmitted] = useState(false);
@@ -44,7 +43,6 @@ export default function Calculator() {
     });
   };
 
-  // 🚨 THE FIX: We added ': any' here too just to be safe
   const handleEmailSubmit = async (e: any) => {
     e.preventDefault();
     if (!email) return;
@@ -103,74 +101,4 @@ export default function Calculator() {
             </div>
 
             <div className="pt-2 border-t">
-              <label className="block text-sm font-semibold mb-1 text-gray-600">Votre TJM actuel (Optionnel)</label>
-              <input type="number" min="0" className="w-full border p-3 rounded-lg bg-gray-50" placeholder="ex: 150" value={currentRate} onChange={(e) => setCurrentRate(e.target.value)} />
-            </div>
-
-            <button onClick={calculateTJM} className="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition mt-4">
-              Calculer la réalité
-            </button>
-          </div>
-        )}
-
-        {results && !emailSubmitted && (
-          <div className="space-y-6 animate-fade-in">
-            <div className="bg-red-50 p-6 rounded-lg border border-red-100 text-center">
-              <h2 className="text-red-600 font-bold uppercase tracking-wide text-sm mb-1">Votre TJM de Rentabilité</h2>
-              <p className="text-5xl font-extrabold text-red-700">{results.tjm.toFixed(0)} € <span className="text-lg text-red-500 font-normal">/ jour</span></p>
-              
-              {results.gap > 0 && (
-                <div className="mt-4 p-3 bg-red-100 rounded text-red-900 text-sm font-semibold">
-                  ⚠️ Écart estimé : {results.gap.toFixed(0)} € par jour. <br/>
-                  <span className="font-black text-base">Soit un manque à gagner potentiel de {results.loss.toFixed(0)} € par an.</span>
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleEmailSubmit} className="bg-gray-50 p-6 rounded-lg border">
-              <h3 className="font-bold mb-2">Recevez votre bilan détaillé (Gratuit)</h3>
-              <p className="text-sm text-gray-600 mb-4">Entrez votre email pour recevoir le détail de vos cotisations URSSAF (<strong>{results.tax.toFixed(0)} €/an</strong>) et 3 leviers concrets pour les optimiser.</p>
-              <input 
-                type="email" 
-                required 
-                className="w-full border p-3 rounded-lg mb-3" 
-                placeholder="votre@email.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition disabled:bg-gray-400"
-              >
-                {isSubmitting ? 'Envoi en cours...' : "M'envoyer le bilan détaillé"}
-              </button>
-            </form>
-            
-            <button onClick={handleReset} className="w-full text-center text-sm text-gray-400 hover:text-gray-600 underline mt-2">
-              Refaire le calcul
-            </button>
-          </div>
-        )}
-
-        {emailSubmitted && (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Bilan envoyé ! 📬</h2>
-            <p className="text-gray-600 mb-6">Consultez votre boîte mail d'ici quelques minutes.</p>
-            <div className="p-6 bg-blue-50 border border-blue-100 rounded-lg shadow-sm">
-              <h3 className="font-bold text-lg mb-2">Vous devez augmenter vos prix ?</h3>
-              <p className="text-sm text-gray-700 mb-4">Découvrez nos templates d'emails pour annoncer une hausse de tarif à vos clients sans les perdre.</p>
-              <button className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow">
-                Découvrir le Kit Rate Reset (29€)
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <p className="text-center text-xs text-gray-400 mt-8 pb-4 max-w-lg mx-auto">
-        * Simulation à but indicatif basée sur le régime micro-entreprise (Prestations de services à 21,2%). Hors CFE et versement libératoire.
-      </p>
-    </div>
-  );
-}
+              <label className="block text
