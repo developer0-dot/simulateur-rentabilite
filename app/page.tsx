@@ -10,6 +10,9 @@ const eur = (n: number) =>
 
 const URSSAF_RATE = 0.212;
 
+// ✅ Replace this with your real Stripe Payment Link / Gumroad URL
+const KIT_URL = 'https://tally.so/r/2E44Q9';
+
 type Errors = {
   net?: string;
   days?: string;
@@ -20,7 +23,7 @@ type Results = {
   tjm: number;
   gross: number;
   tax: number;
-  gap: number;  // daily gap (if current rate provided)
+  gap: number; // daily gap (if current rate provided)
   loss: number; // annual loss (if current rate provided)
 };
 
@@ -58,10 +61,8 @@ export default function Calculator() {
 
   const validate = () => {
     const next: Errors = {};
-
     if (!Number.isFinite(monthlyNet) || monthlyNet <= 0) next.net = 'Revenu net invalide.';
     if (!Number.isFinite(daysPerMonth) || daysPerMonth <= 0) next.days = 'Jours facturables invalides.';
-
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -93,7 +94,6 @@ export default function Calculator() {
 
     if (!normalized) next.email = 'Email requis.';
     if (normalized && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) next.email = 'Email invalide.';
-
     setErrors((prev) => ({ ...prev, ...next }));
     if (Object.keys(next).length) return;
 
@@ -165,11 +165,7 @@ export default function Calculator() {
 
           {!results && (
             <div className="flex items-center justify-center mb-6">
-              <button
-                type="button"
-                onClick={fillExample}
-                className="text-xs text-blue-600 hover:underline"
-              >
+              <button type="button" onClick={fillExample} className="text-xs text-blue-600 hover:underline">
                 Remplir un exemple
               </button>
             </div>
@@ -210,9 +206,7 @@ export default function Calculator() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-1">
-                      Dépenses mensuelles (frais pro)
-                    </label>
+                    <label className="block text-sm font-semibold mb-1">Dépenses mensuelles (frais pro)</label>
                     <p className="text-xs text-gray-400 mb-2">Laissez vide si 0€.</p>
                     <div className="relative">
                       <input
@@ -286,8 +280,8 @@ export default function Calculator() {
               </button>
 
               <p className="text-[11px] text-gray-400 leading-snug pt-2">
-                Outil indicatif. Les calculs sont une estimation basée sur le taux URSSAF 2026 pour micro-entreprise
-                en prestations de services. Hors TVA, CFE, versement libératoire et autres cas particuliers.
+                Outil indicatif. Estimation basée sur le taux URSSAF 2026 pour micro-entreprise en prestations de
+                services. Hors TVA, CFE, versement libératoire et autres cas particuliers.
               </p>
             </form>
           )}
@@ -304,7 +298,6 @@ export default function Calculator() {
                   {eur(results.tjm)} € <span className="text-lg text-red-500 font-normal">/ jour</span>
                 </p>
 
-                {/* Gap / confrontation */}
                 <div className="mt-4 text-left">
                   {hasCurrent ? (
                     results.gap > 0 ? (
@@ -329,7 +322,6 @@ export default function Calculator() {
                 </div>
               </div>
 
-              {/* Breakdown */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
                 <div className="flex justify-between py-1">
                   <span className="text-gray-600">CA annuel requis</span>
@@ -349,12 +341,9 @@ export default function Calculator() {
                 </div>
               </div>
 
-              {/* Email capture */}
               <form onSubmit={handleEmailSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Recevoir ce bilan par email
-                  </label>
+                  <label className="block text-sm font-semibold mb-1">Recevoir ce bilan par email</label>
                   <p className="text-xs text-gray-500 mb-2">
                     + 1 astuce concrète pour augmenter votre TJM sans perdre vos clients.
                   </p>
@@ -393,7 +382,7 @@ export default function Calculator() {
             </div>
           )}
 
-          {/* THANK YOU */}
+          {/* THANK YOU + ✅ SOFT KIT INVITATION */}
           {results && emailSubmitted && (
             <div className="space-y-5">
               <div className="bg-emerald-50 p-6 rounded-lg border border-emerald-100 text-center">
@@ -406,9 +395,32 @@ export default function Calculator() {
               <div className="bg-white p-4 rounded-lg border border-gray-200 text-sm">
                 <div className="font-semibold text-gray-900 mb-1">Un tip immédiat (à utiliser aujourd’hui)</div>
                 <p className="text-gray-600 leading-relaxed">
-                  Quand un client résiste à un tarif, évitez de “justifier” votre prix. Cadrez plutôt en termes de
-                  <strong> capacité</strong> : “À ce tarif-là, je ne peux pas garantir la qualité / la disponibilité.”
+                  Quand un client résiste à un tarif, évitez de “justifier” votre prix. Cadrez plutôt en termes de{' '}
+                  <strong>capacité</strong> : “À ce tarif-là, je ne peux pas garantir la qualité / la disponibilité.”
                   Puis proposez une alternative (moins de fréquence, moins de périmètre) au lieu de baisser le prix.
+                </p>
+              </div>
+
+              {/* ✅ Soft kit block (no hype, no urgency) */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
+                <div className="font-semibold text-gray-900">
+                  Besoin d’augmenter votre TJM sans perdre vos clients ?
+                </div>
+                <p className="text-gray-600 mt-1">
+                  Pack prêt à l’emploi : scripts d’augmentation + modèle de devis + structure de présentation — <strong>29€</strong>.
+                </p>
+
+                <a
+                  href={KIT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800 transition"
+                >
+                  Voir le Kit (29€)
+                </a>
+
+                <p className="text-[11px] text-gray-400 mt-2">
+                  Optionnel. Pas de pression — juste un raccourci si vous devez agir vite.
                 </p>
               </div>
 
