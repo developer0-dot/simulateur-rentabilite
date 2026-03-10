@@ -10,7 +10,7 @@ const eur = (n: number) =>
 
 const URSSAF_RATE = 0.212;
 
-// ✅ Replace this with your real Stripe Payment Link / Gumroad URL
+// Replace this with your real checkout / Tally / Gumroad link
 const KIT_URL = 'https://tally.so/r/2E44Q9';
 
 type Errors = {
@@ -23,9 +23,41 @@ type Results = {
   tjm: number;
   gross: number;
   tax: number;
-  gap: number; // daily gap (if current rate provided)
-  loss: number; // annual loss (if current rate provided)
+  gap: number;
+  loss: number;
 };
+
+type ExamplePreset = {
+  label: string;
+  net: string;
+  expenses: string;
+  days: string;
+  rate: string;
+};
+
+const EXAMPLES: ExamplePreset[] = [
+  {
+    label: 'Petit rythme',
+    net: '1800',
+    expenses: '150',
+    days: '16',
+    rate: '110',
+  },
+  {
+    label: 'Rythme stable',
+    net: '2300',
+    expenses: '250',
+    days: '18',
+    rate: '130',
+  },
+  {
+    label: 'Rythme soutenu',
+    net: '2800',
+    expenses: '300',
+    days: '20',
+    rate: '150',
+  },
+];
 
 export default function Calculator() {
   const [netTarget, setNetTarget] = useState('');
@@ -107,14 +139,15 @@ export default function Calculator() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: normalized,
+          niche: 'menage',
           regime: 'micro_prestations_services',
           urssaf_rate: URSSAF_RATE,
-          tjm_cible: eur(results.tjm),
+          tarif_minimum: eur(results.tjm),
           ca_annuel_requis: eur(results.gross),
           urssaf_estime: eur(results.tax),
           frais_annuels: eur(annualExp),
           net_annuel_cible: eur(annualNet),
-          tjm_actuel: hasCurrent ? eur(currentTJM) : 'N/A',
+          tarif_actuel: hasCurrent ? eur(currentTJM) : 'N/A',
           manque_annuel: results.loss > 0 ? eur(results.loss) : 'N/A',
         }),
       });
@@ -136,42 +169,52 @@ export default function Calculator() {
     setErrors({});
   };
 
-  const fillExample = () => {
-    setNetTarget('2500');
-    setExpenses('300');
-    setBillableDays('15');
-    setCurrentRate('150');
+  const applyExample = (example: ExamplePreset) => {
+    setNetTarget(example.net);
+    setExpenses(example.expenses);
+    setBillableDays(example.days);
+    setCurrentRate(example.rate);
     setErrors({});
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 flex flex-col">
-      {/* Clean header */}
       <div className="w-full h-24 bg-slate-900 border-b border-slate-800" />
 
       <div className="flex-grow flex items-start justify-center px-4">
         <div className="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full relative -mt-12 z-10 mb-12">
           <h1 className="text-2xl font-extrabold text-center mb-2 text-gray-900 leading-tight">
-            La plupart des freelances sous-facturent de 20 à 40%.
+            Auto-entrepreneur dans le ménage ?
+            <br />
+            Calculez votre vrai tarif minimum.
           </h1>
 
           <p className="text-center text-gray-500 mb-1 text-sm">
-            Calculez votre TJM minimum pour ne pas travailler à perte.
+            Voyez clairement ce qu’il vous faut facturer pour couvrir vos charges, vos frais et vos jours non facturables.
           </p>
 
           <p className="text-center text-xs text-gray-400 mb-4 font-medium bg-gray-50 inline-block w-full py-2 rounded-md border border-gray-100">
-            Micro-entreprise · Prestations de services · Estimation 2026
+            Micro-entreprise · Prestations de ménage · Estimation simple
           </p>
 
           {!results && (
-            <div className="flex items-center justify-center mb-6">
-              <button type="button" onClick={fillExample} className="text-xs text-blue-600 hover:underline">
-                Remplir un exemple
-              </button>
+            <div className="mb-6">
+              <p className="text-xs text-gray-500 mb-3 text-center">Exemples rapides :</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {EXAMPLES.map((example) => (
+                  <button
+                    key={example.label}
+                    type="button"
+                    onClick={() => applyExample(example)}
+                    className="text-xs px-3 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+                  >
+                    {example.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* INPUTS */}
           {!results && (
             <form
               onSubmit={(e) => {
@@ -182,13 +225,13 @@ export default function Calculator() {
             >
               <div>
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">
-                  Vos objectifs
+                  Votre objectif
                 </h3>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1">
-                      Revenu net mensuel visé <span className="text-red-600">*</span>
+                      Revenu net mensuel souhaité <span className="text-red-600">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -196,7 +239,7 @@ export default function Calculator() {
                         inputMode="numeric"
                         min={1}
                         className={inputClass(!!errors.net, true)}
-                        placeholder="2500"
+                        placeholder="2300"
                         value={netTarget}
                         onChange={(e) => setNetTarget(e.target.value)}
                       />
@@ -206,7 +249,9 @@ export default function Calculator() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Dépenses mensuelles (frais pro)</label>
+                    <label className="block text-sm font-semibold mb-1">
+                      Frais mensuels (déplacements, produits, petit matériel)
+                    </label>
                     <p className="text-xs text-gray-400 mb-2">Laissez vide si 0€.</p>
                     <div className="relative">
                       <input
@@ -214,7 +259,7 @@ export default function Calculator() {
                         inputMode="numeric"
                         min={0}
                         className={inputClass(false, true)}
-                        placeholder="300"
+                        placeholder="250"
                         value={expenses}
                         onChange={(e) => setExpenses(e.target.value)}
                       />
@@ -226,23 +271,23 @@ export default function Calculator() {
 
               <div className="pt-1">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">
-                  Votre réalité
+                  Votre réalité terrain
                 </h3>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1">
-                      Jours facturables par mois <span className="text-red-600">*</span>
+                      Jours réellement facturables par mois <span className="text-red-600">*</span>
                     </label>
                     <p className="text-xs text-gray-400 mb-2">
-                      Excluez l&apos;admin, la prospection et les congés.
+                      Excluez les trajets, l’administratif, les jours vides et les congés.
                     </p>
                     <input
                       type="number"
                       inputMode="numeric"
                       min={1}
                       className={inputClass(!!errors.days)}
-                      placeholder="15"
+                      placeholder="18"
                       value={billableDays}
                       onChange={(e) => setBillableDays(e.target.value)}
                     />
@@ -251,7 +296,7 @@ export default function Calculator() {
 
                   <div>
                     <label className="block text-sm font-semibold mb-1 text-gray-700">
-                      Votre TJM actuel (optionnel)
+                      Votre tarif actuel par jour (optionnel)
                     </label>
                     <div className="relative">
                       <input
@@ -259,14 +304,14 @@ export default function Calculator() {
                         inputMode="numeric"
                         min={0}
                         className={inputClass(false, true)}
-                        placeholder="150"
+                        placeholder="130"
                         value={currentRate}
                         onChange={(e) => setCurrentRate(e.target.value)}
                       />
                       <span className="absolute right-3 top-3 text-gray-400 font-semibold">€</span>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                      Ajoutez-le pour voir l’écart et le manque à gagner.
+                      Ajoutez-le pour voir l’écart entre votre tarif actuel et votre minimum réel.
                     </p>
                   </div>
                 </div>
@@ -276,33 +321,36 @@ export default function Calculator() {
                 type="submit"
                 className="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition shadow-md text-lg"
               >
-                Voir mon vrai TJM
+                Voir mon tarif minimum
               </button>
 
               <p className="text-[11px] text-gray-400 leading-snug pt-2">
-                Outil indicatif. Estimation basée sur le taux URSSAF 2026 pour micro-entreprise en prestations de
-                services. Hors TVA, CFE, versement libératoire et autres cas particuliers.
+                Outil indicatif. Estimation simple pour micro-entreprise en prestations de ménage. Hors TVA, CFE,
+                versement libératoire et autres cas particuliers.
               </p>
             </form>
           )}
 
-          {/* RESULTS */}
           {results && !emailSubmitted && (
             <div className="space-y-6">
               <div className="bg-red-50 p-6 rounded-lg border border-red-100 text-center">
                 <h2 className="text-red-600 font-bold uppercase tracking-wide text-sm mb-1">
-                  Votre TJM minimum de rentabilité
+                  Votre tarif minimum estimé
                 </h2>
 
                 <p className="text-5xl font-extrabold text-red-700">
                   {eur(results.tjm)} € <span className="text-lg text-red-500 font-normal">/ jour</span>
                 </p>
 
+                <p className="text-xs text-red-500 mt-2">
+                  Ce n’est pas un “prix haut”. C’est votre seuil minimum estimé pour travailler proprement.
+                </p>
+
                 <div className="mt-4 text-left">
                   {hasCurrent ? (
                     results.gap > 0 ? (
                       <div className="p-4 bg-red-100 rounded-lg text-red-900 text-sm font-medium">
-                        Si vous facturez <strong>{eur(currentTJM)}€/jour</strong>, il vous manque environ{' '}
+                        Si vous facturez aujourd’hui <strong>{eur(currentTJM)}€/jour</strong>, il vous manque environ{' '}
                         <strong>{eur(results.gap)}€ par jour</strong>.
                         <div className="mt-2 font-black">
                           Soit environ <span className="underline">{eur(results.loss)}€</span> par an.
@@ -310,13 +358,13 @@ export default function Calculator() {
                       </div>
                     ) : (
                       <div className="p-4 bg-emerald-100 rounded-lg text-emerald-900 text-sm font-medium">
-                        Bonne nouvelle : à <strong>{eur(currentTJM)}€/jour</strong>, vous êtes{' '}
-                        <strong>au-dessus</strong> de votre minimum de rentabilité (selon cette estimation).
+                        Bonne nouvelle : à <strong>{eur(currentTJM)}€/jour</strong>, vous êtes au-dessus de votre
+                        minimum estimé.
                       </div>
                     )
                   ) : (
                     <div className="p-4 bg-gray-100 rounded-lg text-gray-800 text-sm font-medium">
-                      Ajoutez votre <strong>TJM actuel</strong> pour voir l’écart et le manque à gagner.
+                      Ajoutez votre tarif actuel pour voir l’écart et le manque à gagner.
                     </div>
                   )}
                 </div>
@@ -324,7 +372,7 @@ export default function Calculator() {
 
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
                 <div className="flex justify-between py-1">
-                  <span className="text-gray-600">CA annuel requis</span>
+                  <span className="text-gray-600">Chiffre d’affaires annuel requis</span>
                   <strong className="text-gray-900">{eur(results.gross)} €</strong>
                 </div>
                 <div className="flex justify-between py-1">
@@ -332,11 +380,11 @@ export default function Calculator() {
                   <strong className="text-gray-900">- {eur(results.tax)} €</strong>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-gray-600">Frais pro (annuel)</span>
+                  <span className="text-gray-600">Frais annuels</span>
                   <strong className="text-gray-900">- {eur(annualExp)} €</strong>
                 </div>
                 <div className="flex justify-between py-1 border-t mt-2 pt-2">
-                  <span className="text-gray-700">Net cible (annuel)</span>
+                  <span className="text-gray-700">Net annuel visé</span>
                   <strong className="text-gray-900">{eur(annualNet)} €</strong>
                 </div>
               </div>
@@ -345,7 +393,7 @@ export default function Calculator() {
                 <div>
                   <label className="block text-sm font-semibold mb-1">Recevoir ce bilan par email</label>
                   <p className="text-xs text-gray-500 mb-2">
-                    + 1 astuce concrète pour augmenter votre TJM sans perdre vos clients.
+                    + 1 conseil concret pour ajuster vos tarifs sans perdre vos clients.
                   </p>
 
                   <input
@@ -382,7 +430,6 @@ export default function Calculator() {
             </div>
           )}
 
-          {/* THANK YOU + ✅ SOFT KIT INVITATION */}
           {results && emailSubmitted && (
             <div className="space-y-5">
               <div className="bg-emerald-50 p-6 rounded-lg border border-emerald-100 text-center">
@@ -393,21 +440,21 @@ export default function Calculator() {
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-gray-200 text-sm">
-                <div className="font-semibold text-gray-900 mb-1">Un tip immédiat (à utiliser aujourd’hui)</div>
+                <div className="font-semibold text-gray-900 mb-1">Un conseil simple</div>
                 <p className="text-gray-600 leading-relaxed">
-                  Quand un client résiste à un tarif, évitez de “justifier” votre prix. Cadrez plutôt en termes de{' '}
-                  <strong>capacité</strong> : “À ce tarif-là, je ne peux pas garantir la qualité / la disponibilité.”
-                  Puis proposez une alternative (moins de fréquence, moins de périmètre) au lieu de baisser le prix.
+                  Quand un client résiste à un nouveau tarif, évitez de vous justifier longuement. Restez simple :
+                  votre tarif doit vous permettre de travailler dans de bonnes conditions. Si besoin, ajustez la
+                  fréquence ou le périmètre, pas votre équilibre.
                 </p>
               </div>
 
-              {/* ✅ Soft kit block (no hype, no urgency) */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
                 <div className="font-semibold text-gray-900">
-                  Besoin d’augmenter votre TJM sans perdre vos clients ?
+                  Besoin d’augmenter vos tarifs sans perdre vos clients ?
                 </div>
                 <p className="text-gray-600 mt-1">
-                  Pack prêt à l’emploi : scripts d’augmentation + modèle de devis + structure de présentation — <strong>29€</strong>.
+                  Kit pratique : scripts d’augmentation, structure de devis, réponses aux objections et cadre simple
+                  pour décider calmement — <strong>29€</strong>.
                 </p>
 
                 <a
@@ -420,7 +467,7 @@ export default function Calculator() {
                 </a>
 
                 <p className="text-[11px] text-gray-400 mt-2">
-                  Optionnel. Pas de pression — juste un raccourci si vous devez agir vite.
+                  Optionnel. Juste si vous voulez un cadre plus clair pour passer à l’action.
                 </p>
               </div>
 
@@ -433,8 +480,8 @@ export default function Calculator() {
               </button>
 
               <p className="text-[11px] text-gray-400 leading-snug">
-                Outil indicatif. Estimation basée sur le taux URSSAF 2026 pour micro-entreprise en prestations de
-                services. Hors TVA, CFE, versement libératoire et autres cas particuliers.
+                Outil indicatif. Estimation simple pour micro-entreprise en prestations de ménage. Hors TVA, CFE,
+                versement libératoire et autres cas particuliers.
               </p>
             </div>
           )}
