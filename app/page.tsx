@@ -25,6 +25,8 @@ type Results = {
   tax: number;
   gap: number;
   loss: number;
+  hourly7: number;
+  hourly8: number;
 };
 
 type ExamplePreset = {
@@ -109,12 +111,17 @@ export default function Calculator() {
     const dailyGap = hasCurrent ? requiredTJM - currentTJM : 0;
     const annualLoss = dailyGap > 0 ? dailyGap * annualDays : 0;
 
+    const hourly7 = requiredTJM / 7;
+    const hourly8 = requiredTJM / 8;
+
     setResults({
       tjm: requiredTJM,
       gross: requiredAnnualGross,
       tax: urssafTax,
       gap: dailyGap,
       loss: annualLoss,
+      hourly7,
+      hourly8,
     });
   };
 
@@ -143,6 +150,8 @@ export default function Calculator() {
           regime: 'micro_prestations_services',
           urssaf_rate: URSSAF_RATE,
           tarif_minimum: eur(results.tjm),
+          tarif_horaire_7h: eur(results.hourly7),
+          tarif_horaire_8h: eur(results.hourly8),
           ca_annuel_requis: eur(results.gross),
           urssaf_estime: eur(results.tax),
           frais_annuels: eur(annualExp),
@@ -317,6 +326,10 @@ export default function Calculator() {
                 </div>
               </div>
 
+              <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-sm text-amber-900">
+                En ménage, les trajets, les produits, les temps morts entre clients et les annulations peuvent réduire fortement la rentabilité réelle.
+              </div>
+
               <button
                 type="submit"
                 className="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition shadow-md text-lg"
@@ -340,6 +353,10 @@ export default function Calculator() {
 
                 <p className="text-5xl font-extrabold text-red-700">
                   {eur(results.tjm)} € <span className="text-lg text-red-500 font-normal">/ jour</span>
+                </p>
+
+                <p className="text-xs text-red-500 mt-2">
+                  Soit environ {eur(results.hourly7)}€/h sur une base de 7h/jour ou {eur(results.hourly8)}€/h sur une base de 8h/jour.
                 </p>
 
                 <p className="text-xs text-red-500 mt-2">
@@ -388,6 +405,10 @@ export default function Calculator() {
                   <strong className="text-gray-900">{eur(annualNet)} €</strong>
                 </div>
               </div>
+
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Si vous avez plusieurs petits clients dans la semaine, les déplacements et les temps entre deux interventions peuvent vite réduire votre marge réelle.
+              </p>
 
               <form onSubmit={handleEmailSubmit} className="space-y-3">
                 <div>
@@ -453,8 +474,12 @@ export default function Calculator() {
                   Besoin d’augmenter vos tarifs sans perdre vos clients ?
                 </div>
                 <p className="text-gray-600 mt-1">
-                  Kit pratique : scripts d’augmentation, structure de devis, réponses aux objections et cadre simple
-                  pour décider calmement — <strong>29€</strong>.
+                  Kit pratique : messages pour augmenter vos tarifs, réponses aux objections, structure de devis simple
+                  et cadre clair pour décider calmement — <strong>29€</strong>.
+                </p>
+
+                <p className="text-[11px] text-gray-400 mt-2">
+                  Adapté aux clients particuliers et aux prestations de ménage.
                 </p>
 
                 <a
