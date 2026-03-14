@@ -39,21 +39,21 @@ type ExamplePreset = {
 
 const EXAMPLES: ExamplePreset[] = [
   {
-    label: 'Petit rythme',
+    label: 'Petit planning',
     net: '1800',
     expenses: '150',
     days: '16',
     rate: '110',
   },
   {
-    label: 'Rythme stable',
+    label: 'Planning classique',
     net: '2300',
     expenses: '250',
     days: '18',
     rate: '130',
   },
   {
-    label: 'Rythme soutenu',
+    label: 'Planning bien rempli',
     net: '2800',
     expenses: '300',
     days: '20',
@@ -404,6 +404,31 @@ export default function Calculator() {
                   <span className="text-gray-700">Net annuel visé</span>
                   <strong className="text-gray-900">{eur(annualNet)} €</strong>
                 </div>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                <div className="font-semibold text-gray-900 mb-2">
+                  Repères du secteur ménage (indicatifs)
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Début d’activité</span>
+                    <strong className="text-gray-900">100€ – 120€ / jour</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Activité stable</span>
+                    <strong className="text-gray-900">120€ – 150€ / jour</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Activité optimisée</span>
+                    <strong className="text-gray-900">150€ – 180€ / jour</strong>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">
+                  Ces repères sont indicatifs. Ils varient selon la région, le type de clientèle, les déplacements, les produits et l’organisation de l’activité.
+                </p>
               </div>
 
               <p className="text-xs text-gray-500 leading-relaxed">
